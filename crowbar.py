@@ -3,6 +3,7 @@
 # 
 # 
 ###
+from ConfigParser import SafeConfigParser
 from netaddr import IPAddress
 from argparse import ArgumentParser
 from sqlalchemy import create_engine
@@ -11,6 +12,16 @@ IPTABLES_BIN = "/sbin/iptables"
 WAN_INTERFACE = "eth0"
 INSERT = "-I"
 DELETE = "-D"
+
+CONFIG = None
+
+def getConfig(cfgFile="/etc/crowbar.cfg"):
+    global CONFIG
+    if CONFIG is None:
+        CONFIG = SafeConfigParser()
+        CONFIG.read([cfgFile])
+    return CONFIG
+    
 
 def __createParser():
     parser = ArgumentParser(description="Poke holes in the firewall with this crowbar")
@@ -32,6 +43,7 @@ def __createParser():
     control.add_argument("--src-ip", default=IPAddress("0.0.0.0") , type=IPAddress, help="Source IP Address [default is `any']")
     control.add_argument("--dest-ip", type=IPAddress,
                          help="Destination IP Address (connected to the LAN port)")
+    parser.add_argument("-C", "--config", help="Use a specific config file")
     return parser
 
 def main():
