@@ -13,9 +13,14 @@ DELETE = "-D"
 
 CONFIG_LOC = "/etc/crowbar/crowbar.cfg"
 CONFIG = None
+ENGINE = None
 
 def getEngine():
-    return create_engine("%s://%s" % (CONFIG.get("database", "driver"), CONFIG.get("database", "db")))
+    global ENGINE
+    if ENGINE is None:
+        ENGINE = create_engine("%s://%s" % (CONFIG.get("database", "driver"),
+                                            CONFIG.get("database", "db")))
+    return ENGINE
 
 def getConfig(cfgFile):
     global CONFIG
