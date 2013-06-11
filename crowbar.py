@@ -14,13 +14,6 @@ DELETE = "-D"
 CONFIG_LOC = "/etc/crowbar/crowbar.cfg"
 CONFIG = None
 
-class WeakFileType(FileType):
-    def __call__(self, string):
-        try:
-            super(WeakFileType, self).__call__(string)
-        except IOError as err:
-            pass
-
 def getEngine():
     return create_engine("%s://%s" % (CONFIG.get("database", "driver"), CONFIG.get("database", "db")))
 
