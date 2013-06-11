@@ -5,17 +5,26 @@
 ###
 from ConfigParser import SafeConfigParser
 from netaddr import IPAddress
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType
 from sqlalchemy import create_engine
 
-IPTABLES_BIN = "/sbin/iptables"
-WAN_INTERFACE = "eth0"
 INSERT = "-I"
 DELETE = "-D"
 
+CONFIG_LOC = "/etc/crowbar/crowbar.cfg"
 CONFIG = None
 
-def getConfig(cfgFile="/etc/crowbar.cfg"):
+class WeakFileType(FileType):
+    def __call__(self, string):
+        try:
+            super(WeakFileType, self).__call__(string)
+        except IOError as err:
+            pass
+
+def getEngine():
+    return create_engine("%s://%s" % (CONFIG.get("database", "driver"), CONFIG.get("database", "db")))
+
+def getConfig(cfgFile):
     global CONFIG
     if CONFIG is None:
         CONFIG = SafeConfigParser()
@@ -43,13 +52,15 @@ def __createParser():
     control.add_argument("--src-ip", default=IPAddress("0.0.0.0") , type=IPAddress, help="Source IP Address [default is `any']")
     control.add_argument("--dest-ip", type=IPAddress,
                          help="Destination IP Address (connected to the LAN port)")
-    parser.add_argument("-C", "--config", help="Use a specific config file")
+    parser.add_argument("-C", "--config", default=CONFIG_LOC, type=str, help="Use a specific config file")
     return parser
 
 def main():
     parser = __createParser()
     args = parser.parse_args()
     print args
+    conf = getConfig(args.config)
+    print conf.get("crowbar", "wan_if")
     #engine = create_engine("sqlite:///etc/crowbar/iptables.db" )
 
 
