@@ -5,6 +5,7 @@
 ###
 from ConfigParser import SafeConfigParser
 from netaddr import IPAddress
+from subprocess import call
 from argparse import ArgumentParser, FileType
 from sqlalchemy import create_engine
 
@@ -28,7 +29,20 @@ def getConfig(cfgFile):
         CONFIG = SafeConfigParser()
         CONFIG.read([cfgFile])
     return CONFIG
-    
+
+def doRule(**kwargs):
+    cmds = CONFIG.items("crowbar")
+    for (key,val) in cmds:
+        if 'cmd' in key:
+            call(val % kwargs)
+
+def insertRule(proto, dport, sport, dip, sip):
+    doRule(action=INSERT, proto=proto, dport=dport,
+           sport=sport, dip=dip, sip=sip)
+
+def deleteRule(proto, dport, sport, dip, sip):
+    doRule(action=DELETE, proto=proto, dport=dport,
+           sport=sport, dip=dip, sip=sip)
 
 def __createParser():
     parser = ArgumentParser(description="Poke holes in the firewall with this crowbar")
@@ -56,9 +70,7 @@ def __createParser():
 def main():
     parser = __createParser()
     args = parser.parse_args()
-    print args
     conf = getConfig(args.config)
-    print conf.get("crowbar", "wan_if")
     #engine = create_engine("sqlite:///etc/crowbar/iptables.db" )
 
 
