@@ -14,7 +14,12 @@ from ConfigParser import SafeConfigParser
 from netaddr import IPAddress
 from subprocess import call
 from argparse import ArgumentParser, FileType
-from sqlalchemy import create_engine
+from sqlalchemy import (create_engine,
+                        Column,
+                        Integer,
+                        String)
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 INSERT = "-I"
 DELETE = "-D"
@@ -22,15 +27,58 @@ DELETE = "-D"
 CONFIG_LOC = "/etc/crowbar/crowbar.cfg"
 CONFIG = None
 ENGINE = None
+SESSION = None
+
+Base = declarative_base()
+
+class Rule(Base):
+    __tablename__ = "Rule"
+    __table_args__ = {'sqlite_autoincrement': True}
+
+
+    id = Column(Integer, primary_key=True)
+    src_ip = Column(Integer)
+    dest_ip = Column(Integer)
+    src_port = Column(Integer)
+    dest_port = Column(Integer)
+    proto = Column(String)
+
+    def __init__(self, proto, dport, sport, dip, sip):
+        self.proto = proto
+        self.src_ip = int(sip)
+        self.dest_ip = int(dip)
+        self.src_port = sport
+        self.dest_port = dport
+
+    def __repr__(self):
+        return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % (self.id,
+                                                               self.src_ip,
+                                                               self.dest_ip,
+                                                               self.src_port,
+                                                               self.dest_port,
+                                                               self.proto)
+
 
 def getEngine():
     global ENGINE
     if ENGINE is None:
-        ENGINE = create_engine("%s://%s" % (CONFIG.get("database", "driver"),
-                                            CONFIG.get("database", "db")))
+        ENGINE = create_engine("%s:///%s" % (getConfig().get("database",
+                                                            "driver"),
+                                            getConfig().get("database", "db")))
     return ENGINE
 
-def getConfig(cfgFile):
+def getSession():
+    global SESSION
+    if SESSION is None:
+        Session = sessionmaker(bind=getEngine())
+        SESSION = Session()
+    return SESSION
+
+def getRules():
+    sess = getSession()
+    print sess.query(Rule).all()
+
+def getConfig(cfgFile=None):
     global CONFIG
     if CONFIG is None:
         CONFIG = SafeConfigParser()
@@ -38,21 +86,27 @@ def getConfig(cfgFile):
     return CONFIG
 
 def doRule(**kwargs):
-    cmds = CONFIG.items("crowbar")
+    cmds = getConfig.items("crowbar")
     for (key,val) in cmds:
         if 'cmd' in key:
             call(val % kwargs)
 
 def insertRule(proto, dport, sport, dip, sip):
+    sess = getSession()
+    rule = Rule(proto, dport, sport, dip, sip)
+    sess.add(rule)
+    print rule
+    sess.commit()
+"""
     doRule(action=INSERT, proto=proto, dport=dport,
            sport=sport, dip=dip, sip=sip)
-
+"""
 def deleteRule(proto, dport, sport, dip, sip):
     doRule(action=DELETE, proto=proto, dport=dport,
            sport=sport, dip=dip, sip=sip)
 
 def __createParser():
-    parser = ArgumentParser(description="Poke holes in the firewall with this crowbar")
+    parser = ArgumentParser(description="NAT Port Forwarding Tool")
     control = parser.add_argument_group("Controls")
     controlAction = control.add_mutually_exclusive_group(required=True)
     controlAction.add_argument("-l", "--list", action="store_const",
@@ -92,10 +146,24 @@ def __createParser():
 def main():
     parser = __createParser()
     args = parser.parse_args()
-    print args
-    conf = getConfig(args.config)
-    #engine = create_engine("sqlite:///etc/crowbar/iptables.db" )
+    # Populate the configuration the first time
+    getConfig(args.config)
+    Base.metadata.create_all(bind=getEngine())
 
+    if args.action is "list":
+        getRules()
+        pass
+    elif args.action is "load":
+        pass
+    elif args.action is "reload":
+        pass
+    elif args.action is "unload":
+        pass
+    elif args.action is "insert":
+        insertRule(args.protocol, args.dest_port, args.src_port, args.dest_ip, args.src_ip)
+        pass
+    elif args.action is "delete":
+        pass
 
 if  __name__ == "__main__":
     main()
