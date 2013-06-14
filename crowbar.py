@@ -44,6 +44,7 @@ class Rule(Base):
     proto = Column(String)
 
     def __init__(self, proto, dport, sport, dip, sip):
+        self.id = None
         self.proto = proto
         self.src_ip = int(sip)
         self.dest_ip = int(dip)
@@ -51,13 +52,10 @@ class Rule(Base):
         self.dest_port = dport
 
     def __repr__(self):
-        return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % (self.id,
-                                                               self.src_ip,
-                                                               self.dest_ip,
-                                                               self.src_port,
-                                                               self.dest_port,
-                                                               self.proto)
+        tpl = (self.id, IPAddress(self.src_ip), IPAddress(self.dest_ip),
+               self.src_port, self.dest_port, self.proto)
 
+        return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % tpl
 
 def getEngine():
     global ENGINE
@@ -95,15 +93,21 @@ def insertRule(proto, dport, sport, dip, sip):
     sess = getSession()
     rule = Rule(proto, dport, sport, dip, sip)
     sess.add(rule)
-    print rule
-    sess.commit()
-"""
     doRule(action=INSERT, proto=proto, dport=dport,
            sport=sport, dip=dip, sip=sip)
-"""
+    sess.commit()
+
 def deleteRule(proto, dport, sport, dip, sip):
+    sess = getSession()
+    rule = sess.query(Rule).filter(Rule.proto == proto,
+                                   Rule.dest_port == dport,
+                                   Rule.src_port == sport,
+                                   Rule.dest_ip == dip,
+                                   Rule.src_ip == sip).one()
+    sess.delete(rule)
     doRule(action=DELETE, proto=proto, dport=dport,
            sport=sport, dip=dip, sip=sip)
+    sess.commit()
 
 def __createParser():
     parser = ArgumentParser(description="NAT Port Forwarding Tool")
@@ -161,9 +165,8 @@ def main():
         pass
     elif args.action is "insert":
         insertRule(args.protocol, args.dest_port, args.src_port, args.dest_ip, args.src_ip)
-        pass
     elif args.action is "delete":
-        pass
+        deleteRule(args.protocol, args.dest_port, args.src_port, args.dest_ip, args.src_ip)
 
 if  __name__ == "__main__":
     main()
