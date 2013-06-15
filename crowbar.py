@@ -185,11 +185,19 @@ def main():
     if args.action is "list":
         printRules()
     elif args.action is "load":
-        pass
+        rules = getAllRules()
+        for rule in rules:
+            rule.insert()
     elif args.action is "reload":
-        pass
+        rules = getAllRules()
+        for rule in rules:
+            rule.delete()
+        for rule in rules:
+            rule.insert()
     elif args.action is "unload":
-        pass
+        rules = getAllRules()
+        for rule in rules:
+            rule.delete()
     elif args.action is "insert":
         insertRule(args.protocol, args.dest_port, args.src_port, args.dest_ip, args.src_ip)
     elif args.action is "delete":
