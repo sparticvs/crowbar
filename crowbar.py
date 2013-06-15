@@ -110,8 +110,7 @@ def insertRule(proto, dport, sport, dip, sip):
     sess = getSession()
     rule = Rule(proto, dport, sport, dip, sip)
     sess.add(rule)
-    doRule(action=INSERT, proto=proto, dport=dport,
-           sport=sport, dip=dip, sip=sip)
+    rule.insert()
     sess.commit()
 
 def deleteRule(proto, dport, sport, dip, sip):
@@ -122,14 +121,12 @@ def deleteRule(proto, dport, sport, dip, sip):
                                    Rule.dest_ip == dip,
                                    Rule.src_ip == sip).one()
     sess.delete(rule)
-    doRule(action=DELETE, proto=proto, dport=dport,
-           sport=sport, dip=dip, sip=sip)
+    rule.delete()
     sess.commit()
 
 def deleteRules(rules):
     for rule in rules:
-        doRule(action=DELETE, proto=rule.proto, dport=rule.dest_port,
-               sport=rule.src_port, dip=rule.dest_ip, sip=rule.src_ip)
+        rule.delete()
 
 def printRules():
     rules = getAllRules()
