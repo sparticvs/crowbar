@@ -54,8 +54,31 @@ class Rule(Base):
     def __repr__(self):
         tpl = (self.id, IPAddress(self.src_ip), IPAddress(self.dest_ip),
                self.src_port, self.dest_port, self.proto)
-
         return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % tpl
+
+    def __str__(self):
+        output = "| {:^15} | {:^5} | {:^15} | {:^5} | {:^5} |"
+        return output.format(IPAddress(self.src_ip), self.src_port,
+                             IPAddress(self.dest_ip), self.dest_port,
+                             self.proto)
+
+    def __runCmds(self, **kwargs):
+        cmds = getConfig.items("crowbar")
+        for (key,val) in cmds:
+            if 'cmd' in key:
+                call(val % kwargs)
+
+    def __buildAndRunCmd(self, action):
+        self.__runCmds(action=action, proto=self.proto, dport=self.dest_port,
+                       sport=self.src_port, dip=dest_ip, sip=src_ip)
+
+    def delete(self):
+        if self.id is None:
+            raise "Rule doesn't exist"
+        self.__buildAndRunCmd(DELETE)
+
+    def insert(self):
+        self.__buildAndRunCmd(INSERT)
 
 def getEngine():
     global ENGINE
@@ -72,9 +95,9 @@ def getSession():
         SESSION = Session()
     return SESSION
 
-def getRules():
+def getAllRules():
     sess = getSession()
-    print sess.query(Rule).all()
+    return sess.query(Rule).all()
 
 def getConfig(cfgFile=None):
     global CONFIG
@@ -82,12 +105,6 @@ def getConfig(cfgFile=None):
         CONFIG = SafeConfigParser()
         CONFIG.read([cfgFile])
     return CONFIG
-
-def doRule(**kwargs):
-    cmds = getConfig.items("crowbar")
-    for (key,val) in cmds:
-        if 'cmd' in key:
-            call(val % kwargs)
 
 def insertRule(proto, dport, sport, dip, sip):
     sess = getSession()
@@ -108,6 +125,20 @@ def deleteRule(proto, dport, sport, dip, sip):
     doRule(action=DELETE, proto=proto, dport=dport,
            sport=sport, dip=dip, sip=sip)
     sess.commit()
+
+def deleteRules(rules):
+    for rule in rules:
+        doRule(action=DELETE, proto=rule.proto, dport=rule.dest_port,
+               sport=rule.src_port, dip=rule.dest_ip, sip=rule.src_ip)
+
+def printRules():
+    rules = getAllRules()
+    print "+-----------------+-------+-----------------+-------+-------+"
+    print "|     Src IP      | Port  |     Dest IP     | Port  | Proto |"
+    print "+-----------------+-------+-----------------+-------+-------+"
+    for rule in rules:
+        print rule
+    print "+-----------------+-------+-----------------+-------+-------+"
 
 def __createParser():
     parser = ArgumentParser(description="NAT Port Forwarding Tool")
@@ -155,8 +186,7 @@ def main():
     Base.metadata.create_all(bind=getEngine())
 
     if args.action is "list":
-        getRules()
-        pass
+        printRules()
     elif args.action is "load":
         pass
     elif args.action is "reload":
