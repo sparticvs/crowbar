@@ -74,7 +74,7 @@ class Rule(Base):
 
     def delete(self):
         if self.id is None:
-            raise "Rule doesn't exist"
+            raise RuntimeError("Rule doesn't exist")
         self.__buildAndRunCmd(DELETE)
 
     def insert(self):
