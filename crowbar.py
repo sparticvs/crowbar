@@ -52,35 +52,43 @@ class Rule(Base):
         self.dest_port = dport
 
     def __repr__(self):
+        """Create a string representative of the objet"""
         tpl = (self.id, IPAddress(self.src_ip), IPAddress(self.dest_ip),
                self.src_port, self.dest_port, self.proto)
         return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % tpl
 
     def __str__(self):
+        """Create a string in the table format"""
         output = "| {:^15} | {:^5} | {:^15} | {:^5} | {:^5} |"
         return output.format(IPAddress(self.src_ip), self.src_port,
                              IPAddress(self.dest_ip), self.dest_port,
                              self.proto)
 
-    def __runCmds(self, **kwargs):
+    @staticmethod
+    def __runCmds(**kwargs):
+        """Build and execute the firewall commands"""
         cmds = getConfig.items("crowbar")
         for (key,val) in cmds:
             if 'cmd' in key:
                 call(val % kwargs)
 
     def __buildAndRunCmd(self, action):
+        """Build the commands off of this instance"""
         self.__runCmds(action=action, proto=self.proto, dport=self.dest_port,
                        sport=self.src_port, dip=dest_ip, sip=src_ip)
 
     def delete(self):
+        """Run the delete commands in IPTables"""
         if self.id is None:
             raise RuntimeError("Rule doesn't exist")
         self.__buildAndRunCmd(DELETE)
 
     def insert(self):
+        """Run the insert commands in IPTables"""
         self.__buildAndRunCmd(INSERT)
 
 def getEngine():
+    """Singleton to return the db engine"""
     global ENGINE
     if ENGINE is None:
         ENGINE = create_engine("%s:///%s" % (getConfig().get("database",
@@ -89,6 +97,7 @@ def getEngine():
     return ENGINE
 
 def getSession():
+    """Singleton to return the db session"""
     global SESSION
     if SESSION is None:
         Session = sessionmaker(bind=getEngine())
@@ -96,10 +105,12 @@ def getSession():
     return SESSION
 
 def getAllRules():
+    """Return a collection of all rules"""
     sess = getSession()
     return sess.query(Rule).all()
 
 def getConfig(cfgFile=None):
+    """Singleton to return the configuration"""
     global CONFIG
     if CONFIG is None:
         CONFIG = SafeConfigParser()
@@ -107,6 +118,7 @@ def getConfig(cfgFile=None):
     return CONFIG
 
 def insertRule(proto, dport, sport, dip, sip):
+    """Insert arule into the table and system"""
     sess = getSession()
     rule = Rule(proto, dport, sport, dip, sip)
     sess.add(rule)
@@ -114,6 +126,7 @@ def insertRule(proto, dport, sport, dip, sip):
     sess.commit()
 
 def deleteRule(proto, dport, sport, dip, sip):
+    """Delete a rule from the Table and system"""
     sess = getSession()
     rule = sess.query(Rule).filter(Rule.proto == proto,
                                    Rule.dest_port == dport,
@@ -125,10 +138,12 @@ def deleteRule(proto, dport, sport, dip, sip):
     sess.commit()
 
 def deleteRules(rules):
+    """Delete a collection of rules from IPTables"""
     for rule in rules:
         rule.delete()
 
 def printRules():
+    """Print out the firewall rules we are maintaining"""
     rules = getAllRules()
     print "+-----------------+-------+-----------------+-------+-------+"
     print "|     Src IP      | Port  |     Dest IP     | Port  | Proto |"
@@ -176,6 +191,7 @@ def __createParser():
     return parser
 
 def main():
+    """Main subroutine to handle all basic tasks"""
     parser = __createParser()
     args = parser.parse_args()
     # Populate the configuration the first time
