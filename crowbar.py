@@ -190,6 +190,18 @@ def __createParser():
                         help="Use a specific config file")
     return parser
 
+def loadRules():
+    """Load all rules in the db into iptables"""
+    rules = getAllRules()
+    for rule in rules:
+        rule.insert()
+
+def unloadRules():
+    """Delete all the rules in the db from iptables"""
+    rules = getAllRules()
+    for rule in rules:
+        rule.delete()
+
 def main():
     """Main subroutine to handle all basic tasks"""
     parser = __createParser()
@@ -201,19 +213,12 @@ def main():
     if args.action is "list":
         printRules()
     elif args.action is "load":
-        rules = getAllRules()
-        for rule in rules:
-            rule.insert()
+        loadRules()
     elif args.action is "reload":
-        rules = getAllRules()
-        for rule in rules:
-            rule.delete()
-        for rule in rules:
-            rule.insert()
+        unloadRules()
+        loadRules()
     elif args.action is "unload":
-        rules = getAllRules()
-        for rule in rules:
-            rule.delete()
+        unloadRules()
     elif args.action is "insert":
         insertRule(args.protocol, args.dest_port, args.src_port, args.dest_ip, args.src_ip)
     elif args.action is "delete":
