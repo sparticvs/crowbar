@@ -67,7 +67,7 @@ class Rule(Base):
     @staticmethod
     def __runCmds(**kwargs):
         """Build and execute the firewall commands"""
-        cmds = getConfig.items("crowbar")
+        cmds = getConfig().items("crowbar")
         for (key,val) in cmds:
             if 'cmd' in key:
                 call(val % kwargs)
