@@ -59,7 +59,7 @@ class Rule(Base):
 
     def __str__(self):
         """Create a string in the table format"""
-        output = "| {:^15} | {:^5} | {:^15} | {:^5} | {:^5} |"
+        output = "| {0:^15} | {1:^5} | {2:^15} | {3:^5} | {4:^5} |"
         return output.format(IPAddress(self.src_ip), self.src_port,
                              IPAddress(self.dest_ip), self.dest_port,
                              self.proto)
