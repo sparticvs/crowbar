@@ -75,7 +75,7 @@ class Rule(Base):
     def __buildAndRunCmd(self, action):
         """Build the commands off of this instance"""
         self.__runCmds(action=action, proto=self.proto, dport=self.dest_port,
-                       sport=self.src_port, dip=dest_ip, sip=src_ip)
+                       sport=self.src_port, dip=self.dest_ip, sip=self.src_ip)
 
     def delete(self):
         """Run the delete commands in IPTables"""
