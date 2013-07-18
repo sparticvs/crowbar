@@ -181,9 +181,11 @@ def __createParser():
                          help="Source Port")
     control.add_argument("--dest-port", type=int, metavar="PORT",
                          help="Destination Port")
+    """ Removing to solve a small problem
     control.add_argument("--src-ip", default=IPAddress("0.0.0.0"),
                          type=IPAddress, metavar="IP",
                          help="Source IP Address (default is `any')")
+    """
     control.add_argument("--dest-ip", type=IPAddress,
                          metavar="IP",
                          help="Destination IP Address (LAN port)")
