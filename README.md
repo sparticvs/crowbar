@@ -36,3 +36,14 @@ usage
       --dest-port PORT      Destination Port
       --src-ip IP           Source IP Address (default is `any')
       --dest-ip IP          Destination IP Address (LAN port)
+
+
+future work
+-----------
+The future of Netfilter is undecided at this point. There is a lot of code work going on by two separate camps
+that is causing some upheaval in the community. There is XTables2 which is aiming at replacing Netfilter entirely
+and removing all the protocol awareness code.  Then there is NFTables which is built by the Netfilter's maintainer
+and is supposed to give an upgrade to Netfilter and swap out iptables for a more robust filtering engine that is
+also protocol unaware.  So here we are, two camps with the same goal but separate routes being taken. I will
+pick a camp after reviewing both of them and work with them and hopefully get the next iteration of this tool
+to be included with their utilities release.
