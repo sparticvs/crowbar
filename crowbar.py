@@ -194,7 +194,7 @@ def __createParser():
     parser.add_argument("--dry-run", default=False, type=bool, action="store_true",
                         help="Don't actually do anything")
     parser.add_argument("-v", "--verbose", default=False, type=bool,
-                        action="store_true", help "Print out all commands")
+                        action="store_true", help="Print out all commands")
     return parser
 
 def loadRules():
