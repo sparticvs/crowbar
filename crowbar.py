@@ -37,8 +37,8 @@ class Rule(Base):
 
 
     id = Column(Integer, primary_key=True)
-    src_ip = Column(Integer)
-    dest_ip = Column(Integer)
+    src_ip = Column(String)
+    dest_ip = Column(String)
     src_port = Column(Integer)
     dest_port = Column(Integer)
     proto = Column(String)
@@ -46,37 +46,39 @@ class Rule(Base):
     def __init__(self, proto, dport, sport, dip, sip):
         self.id = None
         self.proto = proto
-        self.src_ip = int(sip)
-        self.dest_ip = int(dip)
+        self.src_ip = sip
+        self.dest_ip = dip
         self.src_port = sport
         self.dest_port = dport
 
     def __repr__(self):
         """Create a string representative of the objet"""
-        tpl = (self.id, IPAddress(self.src_ip), IPAddress(self.dest_ip),
+        tpl = (self.id, self.src_ip, self.dest_ip,
                self.src_port, self.dest_port, self.proto)
         return "<Rule('%s', '%s', '%s', '%s', '%s', '%s')>" % tpl
 
     def __str__(self):
         """Create a string in the table format"""
         output = "| {0:^15} | {1:^5} | {2:^15} | {3:^5} | {4:^5} |"
-        return output.format(IPAddress(self.src_ip), self.src_port,
-                             IPAddress(self.dest_ip), self.dest_port,
+        return output.format(self.src_ip, self.src_port,
+                             self.dest_ip, self.dest_port,
                              self.proto)
 
-    @staticmethod
-    def __runCmds(**kwargs):
+    def __runCmds(self, **kwargs):
         """Build and execute the firewall commands"""
         cmds = getConfig().items("crowbar")
         for (key,val) in cmds:
             if 'cmd' in key:
-                call(val % kwargs)
+                execution = val % kwargs
+                if not self.dry_run:
+                    call(execution)
+                if self.verbose:
+                    print execution
 
     def __buildAndRunCmd(self, action):
         """Build the commands off of this instance"""
         self.__runCmds(action=action, proto=self.proto, dport=self.dest_port,
-                       sport=self.src_port, dip=IPAddress(self.dest_ip),
-                       sip=IPAddress(self.src_ip))
+                       sport=self.src_port, dip=self.dest_ip, sip=self.src_ip)
 
     def delete(self):
         """Run the delete commands in IPTables"""
@@ -181,16 +183,18 @@ def __createParser():
                          help="Source Port")
     control.add_argument("--dest-port", type=int, metavar="PORT",
                          help="Destination Port")
-    """ Removing to solve a small problem
-    control.add_argument("--src-ip", default=IPAddress("0.0.0.0"),
+    control.add_argument("--src-ip", default=IPNetwork("0.0.0.0/0"),
                          type=IPAddress, metavar="IP",
                          help="Source IP Address (default is `any')")
-    """
-    control.add_argument("--dest-ip", type=IPAddress,
-                         metavar="IP",
+    control.add_argument("--dest-ip", default=IPNetwork("0.0.0.0/0"),
+                         type=IPNetwork, metavar="IP",
                          help="Destination IP Address (LAN port)")
     parser.add_argument("-C", "--config", default=CONFIG_LOC, type=str,
                         help="Use a specific config file")
+    parser.add_argument("--dry-run", default=False, type=bool, action="store_true",
+                        help="Don't actually do anything")
+    parser.add_argument("-v", "--verbose", default=False, type=bool,
+                        action="store_true", help "Print out all commands")
     return parser
 
 def loadRules():
