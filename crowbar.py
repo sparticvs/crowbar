@@ -11,7 +11,7 @@
 # beer in return.
 ###
 from ConfigParser import SafeConfigParser
-from netaddr import IPAddress
+from netaddr import IPNetwork
 from subprocess import call
 from argparse import ArgumentParser, FileType
 from sqlalchemy import (create_engine,
