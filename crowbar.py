@@ -49,8 +49,8 @@ class Rule(Base):
     def __init__(self, proto, dport, sport, dip, sip):
         self.id = None
         self.proto = proto
-        self.src_ip = sip
-        self.dest_ip = dip
+        self.src_ip = str(sip)
+        self.dest_ip = str(dip)
         self.src_port = sport
         self.dest_port = dport
 
@@ -215,6 +215,7 @@ def unloadRules():
 
 def main():
     """Main subroutine to handle all basic tasks"""
+    global VERBOSE, DRYRUN
     parser = __createParser()
     args = parser.parse_args()
     VERBOSE = args.verbose
