@@ -29,6 +29,9 @@ CONFIG = None
 ENGINE = None
 SESSION = None
 
+DRYRUN = False
+VERBOSE = False
+
 Base = declarative_base()
 
 class Rule(Base):
@@ -64,15 +67,16 @@ class Rule(Base):
                              self.dest_ip, self.dest_port,
                              self.proto)
 
-    def __runCmds(self, **kwargs):
+    @staticmethod
+    def __runCmds(**kwargs):
         """Build and execute the firewall commands"""
         cmds = getConfig().items("crowbar")
         for (key,val) in cmds:
             if 'cmd' in key:
                 execution = val % kwargs
-                if not self.dry_run:
+                if not DRYRUN:
                     call(execution)
-                if self.verbose:
+                if VERBOSE:
                     print execution
 
     def __buildAndRunCmd(self, action):
@@ -213,6 +217,8 @@ def main():
     """Main subroutine to handle all basic tasks"""
     parser = __createParser()
     args = parser.parse_args()
+    VERBOSE = args.verbose
+    DRYRUN = args.dry_run
     # Populate the configuration the first time
     getConfig(args.config)
     Base.metadata.create_all(bind=getEngine())
