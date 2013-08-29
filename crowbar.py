@@ -11,7 +11,7 @@
 # beer in return.
 ###
 from ConfigParser import SafeConfigParser
-from netaddr import IPNetwork
+from netaddr import IPNetwork, IPAddress
 from subprocess import call
 from argparse import ArgumentParser, FileType
 from sqlalchemy import (create_engine,
@@ -190,8 +190,8 @@ def __createParser():
     control.add_argument("--src-ip", default=IPNetwork("0.0.0.0/0"),
                          type=IPNetwork, metavar="IP",
                          help="Source IP Address (default is `any')")
-    control.add_argument("--dest-ip", default=IPNetwork("0.0.0.0/0"),
-                         type=IPNetwork, metavar="IP",
+    control.add_argument("--dest-ip", default=IPAddress("0.0.0.0"),
+                         type=IPAddress, metavar="IP",
                          help="Destination IP Address (LAN port)")
     parser.add_argument("-C", "--config", default=CONFIG_LOC, type=str,
                         help="Use a specific config file")
