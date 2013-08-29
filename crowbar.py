@@ -138,8 +138,8 @@ def deleteRule(proto, dport, sport, dip, sip):
     rule = sess.query(Rule).filter(Rule.proto == proto,
                                    Rule.dest_port == dport,
                                    Rule.src_port == sport,
-                                   Rule.dest_ip == dip,
-                                   Rule.src_ip == sip).one()
+                                   Rule.dest_ip == str(dip),
+                                   Rule.src_ip == str(sip)).one()
     sess.delete(rule)
     rule.delete()
     sess.commit()
