@@ -62,7 +62,7 @@ class Rule(Base):
 
     def __str__(self):
         """Create a string in the table format"""
-        output = "| {0:^15} | {1:^5} | {2:^15} | {3:^5} | {4:^5} |"
+        output = "| {0:^18} | {1:^5} | {2:^18} | {3:^5} | {4:^5} |"
         return output.format(self.src_ip, self.src_port,
                              self.dest_ip, self.dest_port,
                              self.proto)
@@ -152,12 +152,12 @@ def deleteRules(rules):
 def printRules():
     """Print out the firewall rules we are maintaining"""
     rules = getAllRules()
-    print "+-----------------+-------+-----------------+-------+-------+"
-    print "|     Src IP      | Port  |     Dest IP     | Port  | Proto |"
-    print "+-----------------+-------+-----------------+-------+-------+"
+    print "+--------------------+-------+--------------------+-------+-------+"
+    print "|       Src IP       | Port  |       Dest IP      | Port  | Proto |"
+    print "+--------------------+-------+--------------------+-------+-------+"
     for rule in rules:
         print rule
-    print "+-----------------+-------+-----------------+-------+-------+"
+    print "+--------------------+-------+--------------------+-------+-------+"
 
 def __createParser():
     parser = ArgumentParser(description="NAT Port Forwarding Tool")
