@@ -1,8 +1,9 @@
+**NOTICE:** *This project has reached end-of-life. With nftables being officially added to the Linux Kernel in 3.13, I will no longer be supporting* crowbar *.  I will instead work on a new tool that will compile rules immediately into nftables byte-code.*
+
 crowbar
 =======
 
 Simple Firewall/NAT/Gateway control script
-
 
 requirements
 ------------
@@ -39,11 +40,11 @@ usage
 
 
 future work
------------
-The future of Netfilter is undecided at this point. There is a lot of code work going on by two separate camps
+------------------------
+<del>The future of Netfilter is undecided at this point. There is a lot of code work going on by two separate camps
 that is causing some upheaval in the community. There is XTables2 which is aiming at replacing Netfilter entirely
 and removing all the protocol awareness code.  Then there is NFTables which is built by the Netfilter's maintainer
 and is supposed to give an upgrade to Netfilter and swap out iptables for a more robust filtering engine that is
 also protocol unaware.  So here we are, two camps with the same goal but separate routes being taken. I will
 pick a camp after reviewing both of them and work with them and hopefully get the next iteration of this tool
-to be included with their utilities release.
+to be included with their utilities release.</del>
